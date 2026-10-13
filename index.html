@@ -1,34 +1,353 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pathfinding Visualizer</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenith — Modern Focus & Productivity Studio</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Pathfinding Visualizer</h1>
-    <div class="toolbar">
-      <select id="algorithm-select">
-        <option value="dijkstra">Dijkstra's Algorithm</option>
-        <option value="bfs">Breadth-First Search (BFS)</option>
-        <option value="dfs">Depth-First Search (DFS)</option>
-      </select>
-      <button id="btn-visualize" class="btn primary">Visualize</button>
-      <button id="btn-maze" class="btn">Generate Random Maze</button>
-      <button id="btn-clear" class="btn danger">Clear Board</button>
-      <div class="slider-group">
-        <label for="speed-slider">Speed:</label>
-        <input type="range" id="speed-slider" min="1" max="50" value="20" />
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <i data-lucide="compass"></i>
       </div>
+      <div>
+        <h1 class="brand-title">Zenith</h1>
+        <p class="brand-subtitle">Focus & Workflow Studio</p>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <div class="clock-display" id="clockDisplay">00:00:00</div>
+      
+      <button class="btn btn-secondary btn-icon" id="themeToggleBtn" title="Toggle Theme">
+        <i data-lucide="sun" id="themeIcon"></i>
+      </button>
+
+      <button class="btn btn-secondary btn-icon" id="exportBtn" title="Export Backup Data">
+        <i data-lucide="download"></i>
+      </button>
+      
+      <button class="btn btn-secondary btn-icon" id="shortcutsBtn" title="Keyboard Shortcuts (?)">
+        <i data-lucide="command"></i>
+      </button>
     </div>
   </header>
 
-  <main>
-    <div id="grid-container" class="grid-board"></div>
+  <!-- Main Container -->
+  <main class="main-layout">
+    
+    <!-- Left Column: Flow Timer & Ambient Soundscape -->
+    <div class="layout-col col-sidebar">
+      
+      <!-- Pomodoro Timer Card -->
+      <section class="card timer-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <i data-lucide="timer" class="card-icon"></i>
+            <h2>Focus Timer</h2>
+          </div>
+          <span class="badge" id="sessionBadge">Pomodoro #1</span>
+        </div>
+
+        <!-- Mode Selectors -->
+        <div class="mode-tabs">
+          <button class="mode-btn active" data-mode="pomodoro">Pomodoro (25m)</button>
+          <button class="mode-btn" data-mode="shortBreak">Short Break (5m)</button>
+          <button class="mode-btn" data-mode="longBreak">Long Break (15m)</button>
+        </div>
+
+        <!-- Circular Dial -->
+        <div class="timer-dial-container">
+          <svg class="timer-svg" viewBox="0 0 240 240">
+            <circle class="timer-bg-circle" cx="120" cy="120" r="105"></circle>
+            <circle class="timer-progress-circle" id="timerProgress" cx="120" cy="120" r="105"></circle>
+          </svg>
+          <div class="timer-text-content">
+            <span class="timer-time" id="timerTime">25:00</span>
+            <span class="timer-label" id="timerModeLabel">Deep Focus</span>
+          </div>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="timer-actions">
+          <button class="btn btn-secondary" id="resetTimerBtn" title="Reset Session">
+            <i data-lucide="rotate-ccw"></i>
+          </button>
+          <button class="btn btn-primary btn-large" id="playPauseTimerBtn">
+            <i data-lucide="play" id="playPauseIcon"></i>
+            <span id="playPauseText">Start Focus</span>
+          </button>
+          <button class="btn btn-secondary" id="skipTimerBtn" title="Skip to Next Mode">
+            <i data-lucide="skip-forward"></i>
+          </button>
+        </div>
+
+        <div class="timer-footer">
+          <span id="todayFocusStat">Focused today: <strong>0 mins</strong></span>
+        </div>
+      </section>
+
+      <!-- Ambient Audio Mixer Card -->
+      <section class="card audio-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <i data-lucide="headphones" class="card-icon"></i>
+            <h2>Ambient Noise</h2>
+          </div>
+          <button class="btn-text" id="muteAllAudioBtn">Mute All</button>
+        </div>
+        <p class="section-desc">Procedurally generated natural background frequencies to eliminate silence and distraction.</p>
+
+        <div class="ambient-tracks">
+          <!-- Rain Track -->
+          <div class="ambient-row" data-sound="rain">
+            <button class="ambient-toggle" data-sound="rain">
+              <i data-lucide="cloud-rain"></i>
+            </button>
+            <div class="ambient-details">
+              <div class="ambient-label">
+                <span>Rainfall</span>
+                <span class="vol-indicator">0%</span>
+              </div>
+              <input type="range" class="slider" min="0" max="100" value="0" data-sound="rain">
+            </div>
+          </div>
+
+          <!-- Forest Birds Track -->
+          <div class="ambient-row" data-sound="waves">
+            <button class="ambient-toggle" data-sound="waves">
+              <i data-lucide="waves"></i>
+            </button>
+            <div class="ambient-details">
+              <div class="ambient-label">
+                <span>Ocean Waves</span>
+                <span class="vol-indicator">0%</span>
+              </div>
+              <input type="range" class="slider" min="0" max="100" value="0" data-sound="waves">
+            </div>
+          </div>
+
+          <!-- Campfire Track -->
+          <div class="ambient-row" data-sound="fire">
+            <button class="ambient-toggle" data-sound="fire">
+              <i data-lucide="flame"></i>
+            </button>
+            <div class="ambient-details">
+              <div class="ambient-label">
+                <span>Fireplace</span>
+                <span class="vol-indicator">0%</span>
+              </div>
+              <input type="range" class="slider" min="0" max="100" value="0" data-sound="fire">
+            </div>
+          </div>
+
+          <!-- Gamma Waves -->
+          <div class="ambient-row" data-sound="gamma">
+            <button class="ambient-toggle" data-sound="gamma">
+              <i data-lucide="activity"></i>
+            </button>
+            <div class="ambient-details">
+              <div class="ambient-label">
+                <span>40Hz Binaural Pulse</span>
+                <span class="vol-indicator">0%</span>
+              </div>
+              <input type="range" class="slider" min="0" max="100" value="0" data-sound="gamma">
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Center/Right Column: Kanban Workspace & Notes -->
+    <div class="layout-col col-main">
+      
+      <!-- Kanban Board Section -->
+      <section class="card kanban-card">
+        <div class="card-header kanban-header">
+          <div class="card-title-group">
+            <i data-lucide="layout-grid" class="card-icon"></i>
+            <h2>Task Pipeline</h2>
+          </div>
+          
+          <div class="kanban-toolbar">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="taskSearchInput" placeholder="Filter tasks...">
+            </div>
+            <button class="btn btn-primary" id="openTaskModalBtn">
+              <i data-lucide="plus"></i>
+              <span>Add Task</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Kanban Columns Grid -->
+        <div class="kanban-grid">
+          
+          <!-- Column: Backlog -->
+          <div class="kanban-column" data-status="todo">
+            <div class="kanban-column-header">
+              <div class="col-title">
+                <span class="status-indicator todo"></span>
+                <h3>To Do</h3>
+              </div>
+              <span class="task-count" id="count-todo">0</span>
+            </div>
+            <div class="kanban-dropzone" id="list-todo" data-status="todo"></div>
+          </div>
+
+          <!-- Column: In Progress -->
+          <div class="kanban-column" data-status="progress">
+            <div class="kanban-column-header">
+              <div class="col-title">
+                <span class="status-indicator in-progress"></span>
+                <h3>In Progress</h3>
+              </div>
+              <span class="task-count" id="count-progress">0</span>
+            </div>
+            <div class="kanban-dropzone" id="list-progress" data-status="progress"></div>
+          </div>
+
+          <!-- Column: Done -->
+          <div class="kanban-column" data-status="done">
+            <div class="kanban-column-header">
+              <div class="col-title">
+                <span class="status-indicator done"></span>
+                <h3>Completed</h3>
+              </div>
+              <span class="task-count" id="count-done">0</span>
+            </div>
+            <div class="kanban-dropzone" id="list-done" data-status="done"></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Bottom Split: Daily Habits & Quick Scratchpad -->
+      <div class="bottom-split-grid">
+        
+        <!-- Habit Tracker Card -->
+        <section class="card habits-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <i data-lucide="check-circle-2" class="card-icon"></i>
+              <h2>Daily Disciplines</h2>
+            </div>
+            <button class="btn btn-secondary btn-icon" id="addHabitBtn" title="Add Routine">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+          <div class="habits-list" id="habitsContainer"></div>
+        </section>
+
+        <!-- Scratchpad Card -->
+        <section class="card scratchpad-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <i data-lucide="file-text" class="card-icon"></i>
+              <h2>Active Scratchpad</h2>
+            </div>
+            <span class="save-status" id="scratchpadStatus">Saved</span>
+          </div>
+          <textarea id="scratchpadInput" placeholder="Drop quick notes, ideas, links, or meeting thoughts here... (autosaves)"></textarea>
+          <div class="scratchpad-footer">
+            <span id="charCount">0 words • 0 characters</span>
+            <button class="btn-text" id="clearScratchpadBtn">Clear</button>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
   </main>
 
+  <!-- Create Task Modal -->
+  <div class="modal-overlay" id="taskModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle">New Task</h3>
+        <button class="btn-icon-close" id="closeTaskModalBtn">&times;</button>
+      </div>
+      <form id="taskForm">
+        <div class="form-group">
+          <label for="taskTitle">Task Name</label>
+          <input type="text" id="taskTitle" required placeholder="e.g. Implement OAuth Flow">
+        </div>
+        <div class="form-group">
+          <label for="taskDesc">Description / Checklist (Optional)</label>
+          <textarea id="taskDesc" rows="3" placeholder="Context, details, or acceptance criteria..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="taskPriority">Priority</label>
+            <select id="taskPriority">
+              <option value="low">Low Priority</option>
+              <option value="medium" selected>Medium Priority</option>
+              <option value="high">High Priority</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="taskCategory">Category Tag</label>
+            <input type="text" id="taskCategory" placeholder="e.g. Engineering, Design">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelTaskBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Shortcuts Modal -->
+  <div class="modal-overlay" id="shortcutsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Keyboard Navigation</h3>
+        <button class="btn-icon-close" id="closeShortcutsModalBtn">&times;</button>
+      </div>
+      <div class="shortcut-list">
+        <div class="shortcut-row">
+          <kbd>Space</kbd>
+          <span>Start / Pause Focus Timer</span>
+        </div>
+        <div class="shortcut-row">
+          <kbd>N</kbd>
+          <span>Open New Task Modal</span>
+        </div>
+        <div class="shortcut-row">
+          <kbd>R</kbd>
+          <span>Reset Timer</span>
+        </div>
+        <div class="shortcut-row">
+          <kbd>D</kbd>
+          <span>Toggle Dark / Light Theme</span>
+        </div>
+        <div class="shortcut-row">
+          <kbd>Esc</kbd>
+          <span>Close Open Dialogs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
   <script src="app.js"></script>
 </body>
 </html>
